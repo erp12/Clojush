@@ -8,14 +8,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; local utilities
 
-(defn number
+(defn random-element-or-identity-if-not-a-collection
   "If given a number, returns it. If given a collection, returns a member of the collection.
   Intended for allowing arguments to genetic operators, such as mutation rates, to take
   collections in addition to single values"
-  [number-or-numbers]
-  (if (number? number-or-numbers)
-    number-or-numbers
-    (lrand-nth number-or-numbers)))
+  [thing-or-collection]
+  (if (coll? thing-or-collection)
+    (lrand-nth thing-or-collection)
+    thing-or-collection))
 
 (declare produce-child-genome-by-autoconstruction) ;; forward declaration for grain size calculations
 
@@ -207,22 +207,22 @@
                atom-generators]
         :as argmap}]
   (let [uniform-mutation-rate 
-        (number uniform-mutation-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-rate)
         
         uniform-mutation-constant-tweak-rate 
-        (number uniform-mutation-constant-tweak-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-constant-tweak-rate)
         
         uniform-mutation-float-gaussian-standard-deviation 
-        (number uniform-mutation-float-gaussian-standard-deviation)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-float-gaussian-standard-deviation)
         
         uniform-mutation-int-gaussian-standard-deviation 
-        (number uniform-mutation-int-gaussian-standard-deviation)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-int-gaussian-standard-deviation)
         
         uniform-mutation-tag-gaussian-standard-deviation 
-        (number uniform-mutation-tag-gaussian-standard-deviation)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-tag-gaussian-standard-deviation)
         
         uniform-mutation-string-char-change-rate 
-        (number uniform-mutation-string-char-change-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-string-char-change-rate)
     
         string-tweak (fn [st]
                        (apply str (map (fn [c]
@@ -287,7 +287,7 @@
    mutated it will be replaced with a random instruction."
   [ind {:keys [uniform-mutation-rate maintain-ancestors atom-generators]
         :as argmap}]
-  (let [uniform-mutation-rate (number uniform-mutation-rate)
+  (let [uniform-mutation-rate (random-element-or-identity-if-not-a-collection uniform-mutation-rate)
         instruction-mutator (fn [token]
                               (assoc token
                                 :instruction
@@ -317,10 +317,10 @@
                maintain-ancestors atom-generators]
         :as argmap}]
   (let [uniform-mutation-constant-tweak-rate 
-        (number uniform-mutation-constant-tweak-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-constant-tweak-rate)
         
         uniform-mutation-int-gaussian-standard-deviation 
-        (number uniform-mutation-int-gaussian-standard-deviation)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-int-gaussian-standard-deviation)
         
         constant-mutator (fn [token]
                            (let [const (:instruction token)]
@@ -355,10 +355,10 @@
                maintain-ancestors atom-generators]
         :as argmap}]
   (let [uniform-mutation-constant-tweak-rate 
-        (number uniform-mutation-constant-tweak-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-constant-tweak-rate)
         
         uniform-mutation-float-gaussian-standard-deviation
-        (number uniform-mutation-float-gaussian-standard-deviation)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-float-gaussian-standard-deviation)
         
         constant-mutator (fn [token]
                            (let [const (:instruction token)]
@@ -391,10 +391,10 @@
                maintain-ancestors atom-generators]
         :as argmap}]
   (let [uniform-mutation-rate 
-        (number uniform-mutation-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-rate)
         
         uniform-mutation-tag-gaussian-standard-deviation
-        (number uniform-mutation-tag-gaussian-standard-deviation)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-tag-gaussian-standard-deviation)
          
         constant-mutator (fn [token]
                            (let [const (:instruction token)]
@@ -425,10 +425,10 @@
                maintain-ancestors atom-generators]
         :as argmap}]
   (let [uniform-mutation-rate 
-        (number uniform-mutation-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-rate)
         
         uniform-mutation-string-char-change-rate
-        (number uniform-mutation-string-char-change-rate)
+        (random-element-or-identity-if-not-a-collection uniform-mutation-string-char-change-rate)
         
         string-tweak (fn [st]
                        (apply str (map (fn [c]
@@ -465,7 +465,7 @@
   [ind {:keys [uniform-mutation-constant-tweak-rate 
                maintain-ancestors atom-generators]
         :as argmap}]
-  (let [uniform-mutation-constant-tweak-rate (number uniform-mutation-constant-tweak-rate)
+  (let [uniform-mutation-constant-tweak-rate (random-element-or-identity-if-not-a-collection uniform-mutation-constant-tweak-rate)
         constant-mutator (fn [token]
                            (let [const (:instruction token)]
                              (if (or (= const true) (= const false)) 
@@ -497,8 +497,8 @@
         :as argmap}]
   (if (not (some #{:close} epigenetic-markers))
     ind
-    (let [uniform-close-mutation-rate (number uniform-close-mutation-rate)
-          close-increment-rate (number close-increment-rate)
+    (let [uniform-close-mutation-rate (random-element-or-identity-if-not-a-collection uniform-close-mutation-rate)
+          close-increment-rate (random-element-or-identity-if-not-a-collection close-increment-rate)
           close-mutator (fn [instr-map]
                           (let [closes (get instr-map :close 0)]
                             (assoc instr-map :close
@@ -530,7 +530,7 @@
         :as argmap}]
   (if (not (some #{:silent} epigenetic-markers))
     ind
-    (let [uniform-silence-mutation-rate (number uniform-silence-mutation-rate)
+    (let [uniform-silence-mutation-rate (random-element-or-identity-if-not-a-collection uniform-silence-mutation-rate)
           silent-mutator (fn [instr-map]
                            (let [silent (get instr-map :silent false)]
                              (assoc instr-map :silent
@@ -553,7 +553,7 @@
   "Returns the individual with each element of its genome possibly deleted, with probability
 given by uniform-deletion-rate."
   [ind {:keys [uniform-deletion-rate maintain-ancestors] :as argmap}]
-  (let [rate (number uniform-deletion-rate)
+  (let [rate (random-element-or-identity-if-not-a-collection uniform-deletion-rate)
         new-genome (vec (filter identity
                                 (mapv #(if (< (lrand) rate) nil %)
                                       (:genome ind))))]
@@ -572,7 +572,7 @@ given by uniform-deletion-rate."
   "Returns the individual with each element of its genome possibly preceded or followed by
   a new gene, with probability given by uniform-addition-rate."
   [ind {:keys [uniform-addition-rate maintain-ancestors atom-generators] :as argmap}]
-  (let [rate (number uniform-addition-rate)
+  (let [rate (random-element-or-identity-if-not-a-collection uniform-addition-rate)
         new-genome (vec (apply concat
                                (mapv #(if (< (lrand) rate)
                                         (lshuffle [% 
@@ -598,7 +598,7 @@ given by uniform-deletion-rate."
   uniform-addition-and-deletion-rate."
   [ind {:keys [uniform-addition-and-deletion-rate maintain-ancestors atom-generators] 
         :as argmap}]
-  (let [addition-rate (number uniform-addition-and-deletion-rate)
+  (let [addition-rate (random-element-or-identity-if-not-a-collection uniform-addition-and-deletion-rate)
         deletion-rate (if (zero? addition-rate)
                         0
                         (/ 1 (+ (/ 1 addition-rate) 1)))
@@ -621,6 +621,34 @@ given by uniform-deletion-rate."
                                   (:ancestors ind)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; uniform combination
+
+(defn uniform-combination
+  "Returns child genome created through crossover of two parents. Each gene in parent1
+  is considered in turn, and depending on some probability, may be preceded or followed
+  by the corresponding element from parent2 (which will wrap if it is too short).
+  Probability is given by uniform-combination-rate."
+  [parent1 parent2
+   {:keys [uniform-combination-rate maintain-ancestors]
+    :as argmap}]
+  (let [combination-rate (random-element-or-identity-if-not-a-collection uniform-combination-rate)
+        new-genome (vec
+                    (apply concat
+                           (mapv (fn [g1 g2]
+                                   (if (< (lrand) combination-rate)
+                                     (lshuffle [g1 g2])
+                                     [g1]))
+                                 (:genome parent1)
+                                 (cycle (:genome parent2)))))]
+    (make-individual :genome new-genome
+                     :history (:history parent1)
+                     :age ((age-combining-function argmap) parent1 parent2 new-genome)
+                     :grain-size (compute-grain-size new-genome parent1 parent2 argmap)
+                     :ancestors (if maintain-ancestors
+                                  (cons (:genome parent1) (:ancestors parent1))
+                                  (:ancestors parent1)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; uniform combination and deletion
 
 (defn uniform-combination-and-deletion
@@ -630,9 +658,9 @@ given by uniform-deletion-rate."
   element of the genome may possibly be deleted. Probabilities are given by 
   uniform-combination-and-deletion-rate."
   [parent1 parent2 
-   {:keys [uniform-combination-and-deletion-rate maintain-ancestors atom-generators] 
+   {:keys [uniform-combination-and-deletion-rate maintain-ancestors]
     :as argmap}]
-  (let [combination-rate (number uniform-combination-and-deletion-rate)
+  (let [combination-rate (random-element-or-identity-if-not-a-collection uniform-combination-and-deletion-rate)
         deletion-rate (if (zero? combination-rate)
                         0
                         (/ 1 (+ (/ 1 combination-rate) 1)))
@@ -663,8 +691,8 @@ given by uniform-deletion-rate."
    used in ULTRA."
   [parent1 parent2 {:keys [alternation-rate alignment-deviation
                            max-points maintain-ancestors] :as argmap}]
-  (let [alternation-rate (number alternation-rate)
-        alignment-deviation (number alignment-deviation)
+  (let [alternation-rate (random-element-or-identity-if-not-a-collection alternation-rate)
+        alignment-deviation (random-element-or-identity-if-not-a-collection alignment-deviation)
         s1 (:genome parent1)
         s2 (:genome parent2)
         new-genome (loop [i 0
@@ -768,7 +796,10 @@ given by uniform-deletion-rate."
                (or (re-seq #"in\d+" (name instruction)) ;; from input-output
                    (re-seq #"in_dm" (name instruction)) ;; from digital-multiplier
                    (some #{instruction}
-                         '(a0 a1 a2 d0 d1 d2 d3 d4 d5 d6 d7)))))] ;; from mux problems
+                         '(a0 a1 a2 d0 d1 d2 d3 d4 d5 d6 d7)) ;; from mux problems
+                   (some #{instruction}
+                         '(file_readline file_readchar file_EOF file_begin)) ;; from word-stats
+                   )))]
     (mapv (fn [instruction-map]
             (cond 
               (input-instruction? (:instruction instruction-map))
@@ -792,7 +823,9 @@ the resulting top genome."
    (produce-child-genome-by-autoconstruction 
      parent1-genome parent1-genome parent2-genome argmap))
   ([genome-to-run parent1-genome parent2-genome argmap]
-   (let [run-result (top-item :genome
+   (let [parent1-genome (with-meta parent1-genome {})
+         parent2-genome (with-meta parent2-genome {})
+         run-result (top-item :genome
                               (run-push
                                 (translate-plush-genome-to-push-program
                                   {:genome
@@ -805,7 +838,7 @@ the resulting top genome."
                                     (assoc :parent2-genome parent2-genome)
                                     (assoc :autoconstructing true))))]
      (if (or (seq? run-result) (vector? run-result))
-       (vec run-result)
+       (with-meta (vec run-result) (meta run-result))
        []))))
 
 (defn expressed-program-sequence-from-genome
@@ -846,6 +879,18 @@ programs encoded by genomes g1 and g2."
     (assoc ind :diversifying
       (and (> (reduce min diffs) 0) ;; diversification threshold set here
            (> (count (distinct diffs)) 2)))))
+
+(defn gecco2016-plus2-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        delta #(expressed-difference 
+                 g
+                 (produce-child-genome-by-autoconstruction g g argmap)
+                 argmap)
+        diffs (repeatedly 4 delta)]
+    (assoc ind :diversifying
+      (and (> (reduce min diffs) 0) ;; diversification threshold set here
+           (> (count (distinct diffs)) 3)))))
 
 (defn doesnt-clone-diversifying?
   [ind argmap]
@@ -952,6 +997,98 @@ programs encoded by genomes g1 and g2."
     (assoc ind :diversifying
       (and (> (reduce min diffs) 0)
            (apply distinct? diffs)))))
+
+#_(defn two-x-two-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        make-child #(produce-child-genome-by-autoconstruction % g g argmap)
+        diff #(expressed-difference %1 %2 argmap)
+        c1 (make-child g)
+        c2 (make-child g)
+        gc1a (make-child c1)
+        gc1b (make-child c1)
+        gc2a (make-child c2)
+        gc2b (make-child c2)
+        c1-diff (diff g c1)
+        c2-diff (diff g c2)
+        gc1a-diff (diff c1 gc1a)
+        gc1b-diff (diff c1 gc1b)
+        gc2a-diff (diff c2 gc2a)
+        gc2b-diff (diff c2 gc2b)
+        diffs [c1-diff c2-diff gc1a-diff gc1b-diff gc2a-diff gc2b-diff]]
+    (assoc ind :diversifying
+      (and (> (reduce min diffs) 0)
+           (apply distinct? diffs)))))
+
+(defn two-x-two-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        make-child #(produce-child-genome-by-autoconstruction % g g argmap)
+        diff #(expressed-difference %1 %2 argmap)
+        c1 (make-child g)
+        c2 (make-child g)
+        gc1a (make-child c1)
+        gc1b (make-child c1)
+        gc2a (make-child c2)
+        gc2b (make-child c2)
+        gc1a-diff (diff c1 gc1a)
+        gc1b-diff (diff c1 gc1b)
+        gc2a-diff (diff c2 gc2a)
+        gc2b-diff (diff c2 gc2b)]
+    (assoc ind :diversifying
+      (and ;(not (some #{0} [gc1a-diff gc1b-diff gc2a-diff gc2b-diff]))
+           (not (some #{gc1a-diff} [gc2a-diff gc2b-diff]))
+           (not (some #{gc1b-diff} [gc2a-diff gc2b-diff]))
+           (not (some #{gc2a-diff} [gc1a-diff gc1b-diff]))
+           (not (some #{gc2b-diff} [gc1a-diff gc1b-diff]))))))
+
+(defn minimal-two-x-two-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        make-child #(produce-child-genome-by-autoconstruction % g g argmap)
+        diff #(expressed-difference %1 %2 argmap)
+        c1 (make-child g)
+        c2 (make-child g)
+        gc1a (make-child c1)
+        gc1b (make-child c1)
+        gc2a (make-child c2)
+        gc2b (make-child c2)
+        gc1a-diff (diff c1 gc1a)
+        gc1b-diff (diff c1 gc1b)
+        gc2a-diff (diff c2 gc2a)
+        gc2b-diff (diff c2 gc2b)
+        gc-diffs [gc1a-diff gc1b-diff gc2a-diff gc2b-diff]]
+    (assoc ind :diversifying
+      (and (not (some zero? gc-diffs))
+           (> (count (distinct gc-diffs)) 1)))))
+
+(defn two-x-three-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        make-child #(produce-child-genome-by-autoconstruction % g g argmap)
+        diff #(expressed-difference %1 %2 argmap)
+        c1 (make-child g)
+        c2 (make-child g)
+        gc1a (make-child c1)
+        gc1b (make-child c1)
+        gc1c (make-child c1)
+        gc2a (make-child c2)
+        gc2b (make-child c2)
+        gc2c (make-child c2)
+        gc1a-diff (diff c1 gc1a)
+        gc1b-diff (diff c1 gc1b)
+        gc1c-diff (diff c1 gc1c)
+        gc2a-diff (diff c2 gc2a)
+        gc2b-diff (diff c2 gc2b)
+        gc2c-diff (diff c2 gc2c)]
+    (assoc ind :diversifying
+      (and ;(not (some zero? [gc1a-diff gc1b-diff gc1c-diff gc2a-diff gc2b-diff gc2c-diff]))
+           (not (some #{gc1a-diff} [gc2a-diff gc2b-diff gc2c-diff]))
+           (not (some #{gc1b-diff} [gc2a-diff gc2b-diff gc2c-diff]))
+           (not (some #{gc1c-diff} [gc2a-diff gc2b-diff gc2c-diff]))
+           (not (some #{gc2a-diff} [gc1a-diff gc1b-diff gc1c-diff]))
+           (not (some #{gc2b-diff} [gc1a-diff gc1b-diff gc1c-diff]))
+           (not (some #{gc2c-diff} [gc1a-diff gc1b-diff gc1c-diff]))))))
 
 (defn three-gens-some-diff-diffs-diversifying?
   [ind argmap]
@@ -1080,6 +1217,235 @@ programs encoded by genomes g1 and g2."
            (not (zero? c2-diff))
            (not= c1-diff c2-diff)))))
 
+(defn four-generation-reproductive-difference-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction child1 g g argmap)
+        child3 (produce-child-genome-by-autoconstruction child2 g g argmap)
+        c1-diff (sequence-similarity g child1)
+        c2-diff (sequence-similarity g child2)
+        c3-diff (sequence-similarity g child3)]
+    (assoc ind :diversifying
+      (and (not (zero? c1-diff))
+           (not (zero? c2-diff))
+           (not (zero? c3-diff))
+           (distinct? c1-diff c2-diff c3-diff)))))
+
+(defn makes-children-differently-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)]
+    (assoc ind :diversifying
+      (not= (:made-by (meta child1))
+            (:made-by (meta child2))))))
+
+(defn symbolic-makes-children-differently-diversifying?
+  [ind argmap]
+  (let [symbolic-made-by #(filter (comp not number?) 
+                                  (flatten (:made-by (meta %))))
+        g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)]
+    (assoc ind :diversifying
+      (not= (symbolic-made-by child1)
+            (symbolic-made-by child2)))))
+
+(defn makes-three-children-differently-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)
+        child3 (produce-child-genome-by-autoconstruction g g argmap)]
+    (assoc ind :diversifying
+      (apply distinct? (map :made-by (map meta [child1 child2 child3]))))))
+
+(defn symbolic-makes-three-children-differently-diversifying?
+  [ind argmap]
+  (let [symbolic-made-by #(filter (comp not number?) 
+                                  (flatten (:made-by (meta %))))
+        g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)
+        child3 (produce-child-genome-by-autoconstruction g g argmap)]
+    (assoc ind :diversifying
+      (apply distinct? (map symbolic-made-by [child1 child2 child3])))))
+
+(defn children-make-children-differently-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)
+        gc1 (produce-child-genome-by-autoconstruction child1 g g argmap)
+        gc2 (produce-child-genome-by-autoconstruction child2 g g argmap)]
+    (assoc ind :diversifying
+      (not= (:made-by (meta gc1))
+            (:made-by (meta gc2))))))
+
+(defn symbolic-children-make-children-differently-diversifying?
+  [ind argmap]
+  (let [symbolic-made-by #(filter (comp not number?) 
+                                  (flatten (:made-by (meta %))))
+        g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)
+        gc1 (produce-child-genome-by-autoconstruction child1 g g argmap)
+        gc2 (produce-child-genome-by-autoconstruction child2 g g argmap)]
+    (assoc ind :diversifying
+      (not= (symbolic-made-by gc1)
+            (symbolic-made-by gc2)))))
+
+(defn three-children-make-children-differently-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)
+        child3 (produce-child-genome-by-autoconstruction g g argmap)
+        gc1 (produce-child-genome-by-autoconstruction child1 g g argmap)
+        gc2 (produce-child-genome-by-autoconstruction child2 g g argmap)
+        gc3 (produce-child-genome-by-autoconstruction child3 g g argmap)]
+    (assoc ind :diversifying
+      (apply distinct? (map :made-by (map meta [gc1 gc2 gc3]))))))
+
+(defn symbolic-three-children-make-children-differently-diversifying?
+  [ind argmap]
+  (let [symbolic-made-by #(filter (comp not number?) 
+                                  (flatten (:made-by (meta %))))
+        g (:genome ind)
+        child1 (produce-child-genome-by-autoconstruction g g argmap)
+        child2 (produce-child-genome-by-autoconstruction g g argmap)
+        child3 (produce-child-genome-by-autoconstruction g g argmap)
+        gc1 (produce-child-genome-by-autoconstruction child1 g g argmap)
+        gc2 (produce-child-genome-by-autoconstruction child2 g g argmap)
+        gc3 (produce-child-genome-by-autoconstruction child3 g g argmap)]
+    (assoc ind :diversifying
+      (apply distinct? (map symbolic-made-by [gc1 gc2 gc3])))))
+
+(defn reproductive-change-changes-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (flatten (:made-by (meta c)))
+        gc (produce-child-genome-by-autoconstruction c g g argmap)
+        gc-made-by (flatten (:made-by (meta gc)))
+        ggc (produce-child-genome-by-autoconstruction gc g g argmap)
+        ggc-made-by (flatten (:made-by (meta ggc)))]
+    (assoc ind :diversifying
+      (distinct? 1 
+                 (sequence-similarity c-made-by gc-made-by)
+                 (sequence-similarity gc-made-by ggc-made-by)))))
+
+(defn symbolic-reproductive-change-changes-diversifying?
+  [ind argmap]
+  (let [symbolic #(filter (comp not number?) %)
+        g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (symbolic (flatten (:made-by (meta c))))
+        gc (produce-child-genome-by-autoconstruction c g g argmap)
+        gc-made-by (symbolic (flatten (:made-by (meta gc))))
+        ggc (produce-child-genome-by-autoconstruction gc g g argmap)
+        ggc-made-by (symbolic (flatten (:made-by (meta ggc))))]
+    (assoc ind :diversifying
+      (distinct? 1 
+                 (sequence-similarity c-made-by gc-made-by)
+                 (sequence-similarity gc-made-by ggc-made-by)))))
+
+(defn symbolic-reproductive-change-diversifying?
+  [ind argmap]
+  (let [symbolic #(filter (comp not number?) %)
+        g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (symbolic (flatten (:made-by (meta c))))
+        gc (produce-child-genome-by-autoconstruction c g g argmap)
+        gc-made-by (symbolic (flatten (:made-by (meta gc))))]
+    (assoc ind :diversifying
+      (not= c-made-by gc-made-by))))
+
+(defn reproductive-change-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (:made-by (meta c))
+        gc (produce-child-genome-by-autoconstruction c g g argmap)
+        gc-made-by (:made-by (meta gc))]
+    (assoc ind :diversifying
+      (not= c-made-by gc-made-by))))
+
+(defn symbolic-reproductive-divergence-diversifying?
+  [ind argmap]
+  (let [symbolic #(filter (comp not number?) %)
+        g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c2 (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (symbolic (flatten (:made-by (meta c))))
+        c2-made-by (symbolic (flatten (:made-by (meta c2))))]
+    (assoc ind :diversifying
+      (not= c-made-by c2-made-by))))
+
+(defn reproductive-divergence-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c2 (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (flatten (:made-by (meta c)))
+        c2-made-by (flatten (:made-by (meta c2)))]
+    (assoc ind :diversifying
+      (not= c-made-by c2-made-by))))
+
+(defn reproductive-change-changes-differently-diversifying?
+  [ind argmap]
+  (let [g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c2 (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (flatten (:made-by (meta c)))
+        c2-made-by (flatten (:made-by (meta c2)))
+        gc (produce-child-genome-by-autoconstruction c g g argmap)
+        gc2 (produce-child-genome-by-autoconstruction c2 g g argmap)
+        gc-made-by (flatten (:made-by (meta gc)))
+        gc2-made-by (flatten (:made-by (meta gc2)))
+        ggc (produce-child-genome-by-autoconstruction gc g g argmap)
+        ggc2 (produce-child-genome-by-autoconstruction gc2 g g argmap)
+        ggc-made-by (flatten (:made-by (meta ggc)))
+        ggc2-made-by (flatten (:made-by (meta ggc2)))
+        mbsim-c-gc (sequence-similarity c-made-by gc-made-by)
+        mbsim-c2-gc2 (sequence-similarity c2-made-by gc2-made-by)
+        mbsim-gc-ggc (sequence-similarity gc-made-by ggc-made-by)
+        mbsim-gc2-ggc2 (sequence-similarity gc2-made-by ggc2-made-by)]
+    (assoc ind :diversifying
+      (and (distinct? 1 mbsim-c-gc mbsim-gc-ggc)
+           (distinct? 1 mbsim-c2-gc2 mbsim-gc2-ggc2)
+           ;(distinct? mbsim-gc-ggc mbsim-gc2-ggc2)
+           (distinct? (- mbsim-c-gc mbsim-gc-ggc)
+                      (- mbsim-c2-gc2 mbsim-gc2-ggc2))))))
+
+(defn symbolic-reproductive-change-changes-differently-diversifying?
+  [ind argmap]
+  (let [symbolic #(filter (comp not number?) %)
+        g (:genome ind)
+        c (produce-child-genome-by-autoconstruction g g argmap)
+        c2 (produce-child-genome-by-autoconstruction g g argmap)
+        c-made-by (symbolic (flatten (:made-by (meta c))))
+        c2-made-by (symbolic (flatten (:made-by (meta c2))))
+        gc (produce-child-genome-by-autoconstruction c g g argmap)
+        gc2 (produce-child-genome-by-autoconstruction c2 g g argmap)
+        gc-made-by (symbolic (flatten (:made-by (meta gc))))
+        gc2-made-by (symbolic (flatten (:made-by (meta gc2))))
+        ggc (produce-child-genome-by-autoconstruction gc g g argmap)
+        ggc2 (produce-child-genome-by-autoconstruction gc2 g g argmap)
+        ggc-made-by (symbolic (flatten (:made-by (meta ggc))))
+        ggc2-made-by (symbolic (flatten (:made-by (meta ggc2))))
+        mbsim-c-gc (sequence-similarity c-made-by gc-made-by)
+        mbsim-c2-gc2 (sequence-similarity c2-made-by gc2-made-by)
+        mbsim-gc-ggc (sequence-similarity gc-made-by ggc-made-by)
+        mbsim-gc2-ggc2 (sequence-similarity gc2-made-by ggc2-made-by)]
+    (assoc ind :diversifying
+      (and (distinct? 1 mbsim-c-gc mbsim-gc-ggc)
+           (distinct? 1 mbsim-c2-gc2 mbsim-gc2-ggc2)
+           ;(distinct? mbsim-gc-ggc mbsim-gc2-ggc2)
+           (distinct? (- mbsim-c-gc mbsim-gc-ggc)
+                      (- mbsim-c2-gc2 mbsim-gc2-ggc2))))))
+
 (defn use-mate-diversifying?
   [ind argmap]
   (let [g (:genome ind)
@@ -1157,6 +1523,24 @@ programs encoded by genomes g1 and g2."
     (assoc ind :diversifying 
       (not (empty? (clojure.set/difference child-instructions parent-instructions))))))
 
+(defn lost-instruction-diversifying?
+  [ind {:keys [parent1-genome parent2-genome] :as argmap}]
+  (let [set-diff clojure.set/difference
+        child-instructions (set (map :instruction (:genome ind)))
+        parent1-instructions (set (map :instruction parent1-genome))
+        parent2-instructions (set (map :instruction parent2-genome))]
+    (assoc ind :diversifying 
+      (and (not (empty? (set-diff parent1-instructions child-instructions)))
+           (not (empty? (set-diff parent2-instructions child-instructions)))))))
+
+(defn different-instructions-diversifying?
+  [ind {:keys [parent1-genome parent2-genome] :as argmap}]
+  (assoc ind :diversifying 
+    (and (not= (set (map :instruction (:genome ind)))
+               (set (map :instruction parent1-genome)))
+         (not= (set (map :instruction (:genome ind)))
+               (set (map :instruction parent2-genome))))))
+
 (defn new-size-diversifying?
   [ind {:keys [parent1-genome parent2-genome] :as argmap}]
   (let [child-size (count (:genome ind))]
@@ -1181,6 +1565,14 @@ programs encoded by genomes g1 and g2."
                      (= (:instruction instruction-map) 'genome_if_autoconstructing))))
           (:genome ind))))
 
+(defn contains-genesis-diversifying?
+  [ind argmap]
+  (assoc ind :diversifying
+    (some (fn [instruction-map]
+            (and (not (:silent instruction-map))
+                 (= (:instruction instruction-map) 'genome_genesis)))
+          (:genome ind))))
+
 (defn diversifying?
   "Returns ind with :diversifying set to true if it staisfies all test
   specified in (:autoconstructive-diversification-test argmap), or false
@@ -1195,9 +1587,13 @@ programs encoded by genomes g1 and g2."
       (recur ((case (first tests)
                 :gecco2016 gecco2016-diversifying?
                 :gecco2016-plus1 gecco2016-plus1-diversifying?
+                :gecco2016-plus2 gecco2016-plus2-diversifying?
                 :three-gens-diff-diffs three-gens-diff-diffs-diversifying?
                 :three-gens-same-inputs-diff-diffs three-gens-same-inputs-diff-diffs-diversifying?
                 :four-gens-same-inputs-diff-diffs four-gens-same-inputs-diff-diffs-diversifying?
+                :two-x-two two-x-two-diversifying?
+                :minimal-two-x-two minimal-two-x-two-diversifying?
+                :two-x-three two-x-three-diversifying?
                 :three-gens-some-diff-diffs three-gens-some-diff-diffs-diversifying?
                 :size-and-instruction size-and-instruction-diversifying?
                 :distinct-size-and-instruction distinct-size-and-instruction-diversifying?
@@ -1205,6 +1601,23 @@ programs encoded by genomes g1 and g2."
                 :three-gens-size-and-instruction three-gens-size-and-instruction-diversifying?
                 :diffmeans diffmeans-diversifying?
                 :minimal-reproductive-difference minimal-reproductive-difference-diversifying?
+                :four-generation-reproductive-difference four-generation-reproductive-difference-diversifying?
+                :makes-children-differently makes-children-differently-diversifying?
+                :symbolic-makes-children-differently symbolic-makes-children-differently-diversifying?
+                :makes-three-children-differently makes-three-children-differently-diversifying?
+                :symbolic-makes-three-children-differently symbolic-makes-three-children-differently-diversifying?
+                :children-make-children-differently children-make-children-differently-diversifying?
+                :symbolic-children-make-children-differently symbolic-children-make-children-differently-diversifying?
+                :three-children-make-children-differently three-children-make-children-differently-diversifying?
+                :symbolic-three-children-make-children-differently symbolic-three-children-make-children-differently-diversifying?
+                :symbolic-reproductive-change-changes symbolic-reproductive-change-changes-diversifying?
+                :symbolic-reproductive-change-changes-differently symbolic-reproductive-change-changes-differently-diversifying?
+                :symbolic-reproductive-change symbolic-reproductive-change-diversifying?
+                :reproductive-change reproductive-change-diversifying?
+                :symbolic-reproductive-divergence symbolic-reproductive-divergence-diversifying?
+                :reproductive-divergence reproductive-divergence-diversifying?
+                :reproductive-change-changes reproductive-change-changes-diversifying?
+                :reproductive-change-changes-differently reproductive-change-changes-differently-diversifying?
                 :use-mate use-mate-diversifying?
                 :use-mate-differently use-mate-differently-diversifying?
                 :si-and-mate-use si-and-mate-use-diversifying?
@@ -1214,10 +1627,13 @@ programs encoded by genomes g1 and g2."
                 :not-a-clone not-a-clone-diversifying?
                 :minimum-genetic-difference minimum-genetic-difference-diversifying?
                 :different-errors different-errors-diversifying?
-                :new-instruction-diversifying new-instruction-diversifying?
-                :new-size-diversifying new-size-diversifying?
+                :new-instruction new-instruction-diversifying?
+                :lost-instruction lost-instruction-diversifying?
+                :different-instructions different-instructions-diversifying?
+                :new-size new-size-diversifying?
                 :checks-autoconstructing checks-autoconstructing-diversifying?
                 :autoconstruction-aware autoconstruction-aware-diversifying?
+                :contains-genesis contains-genesis-diversifying?
                 :none (fn [ind argmap] i))
               i
               argmap)
@@ -1232,7 +1648,7 @@ programs encoded by genomes g1 and g2."
   be set globally or eliminated in the future."
   [parent1 parent2 {:keys [maintain-ancestors atom-generators max-genome-size-in-initial-program 
                            autoconstructive-clone-probability autoconstructive-decay
-                           autoconstructive-parent-decay]
+                           autoconstructive-parent-decay autoconstructive-clone-decay]
                     :as argmap}]
   (let [decay (fn [g rate]
                 (if (zero? rate)
@@ -1245,7 +1661,9 @@ programs encoded by genomes g1 and g2."
                                    parent1-genome
                                    (produce-child-genome-by-autoconstruction 
                                      parent1-genome parent2-genome argmap))
-        child-genome (decay pre-decay-child-genome autoconstructive-decay)
+        child-genome (if (and clone (not= autoconstructive-clone-decay :same))
+                       (decay pre-decay-child-genome autoconstructive-clone-decay)
+                       (decay pre-decay-child-genome autoconstructive-decay))
         checked (diversifying? {:genome child-genome}
                                (-> argmap
                                    (assoc :parent1-genome parent1-genome)
@@ -1263,7 +1681,9 @@ programs encoded by genomes g1 and g2."
                                            (:ancestors parent1))
                               :is-random-replacement false)
         :parent1-genome parent1-genome
-        :parent2-genome parent2-genome)
+        :parent2-genome parent2-genome
+        :parent1-errors (:errors parent1)
+        :parent2-errors (:errors parent2))
       (let [new-genome (random-plush-genome 
                          max-genome-size-in-initial-program atom-generators argmap)
             new-checked (diversifying? {:genome new-genome} argmap)]
